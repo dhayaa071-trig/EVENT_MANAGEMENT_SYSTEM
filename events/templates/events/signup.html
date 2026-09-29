@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Sign up — Gather{% endblock %}
+{% block content %}<section class="content"><div class="panel"><span class="eyebrow">THERE'S ROOM FOR YOU</span><h1>Come on in.</h1>
+<form method="post">{% csrf_token %}{% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small class="muted">{{ field.help_text|safe }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}<button class="button" type="submit">Create account</button></form>
+<p class="muted">Already have an account? <a href="{% url 'login' %}">Log in</a></p></div></section>{% endblock %}

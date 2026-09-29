@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block title %}Create event — Gather{% endblock %}
+{% block content %}<section class="content"><div class="panel"><span class="eyebrow">BRING PEOPLE TOGETHER</span><h1>Create an event.</h1>
+<form method="post">{% csrf_token %}{% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}<button class="button" type="submit">Publish event</button></form></div></section>{% endblock %}

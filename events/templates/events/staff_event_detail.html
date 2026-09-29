@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Manage {{ event.title }} — Gather{% endblock %}
+{% block content %}
+<section class="content">
+  <p><a href="{% url 'staff_dashboard' %}">← All registrations</a></p>
+  <span class="eyebrow">EVENT WORKSPACE</span>
+  <h1>{{ event.title }}</h1>
+  <p class="muted">{{ event.starts_at|date:"l, F j, Y · g:i A" }} · {{ event.location }} · {{ event.spots_left }} places left</p>
+  <p><a class="button" href="{% url 'attendance_pdf' event.id %}">Download attendance PDF</a></p>
+
+  <div class="staff-sections">
+    <section class="panel">
+      <span class="eyebrow">WHATSAPP GROUP</span>
+      <h2>Invite accepted attendees</h2>
+      <form method="post" action="{% url 'staff_group_link_update' event.id %}">
+        {% csrf_token %}
+        <div class="field"><label for="{{ group_form.whatsapp_group_url.id_for_label }}">Group invitation URL</label>{{ group_form.whatsapp_group_url }}{% if group_form.whatsapp_group_url.help_text %}<small class="muted">{{ group_form.whatsapp_group_url.help_text }}</small>{% endif %}{{ group_form.whatsapp_group_url.errors }}</div>
+        <button class="button" type="submit">Save group link</button>
+      </form>
+    </section>
+    <section class="panel">
+      <span class="eyebrow">ANNOUNCEMENTS</span>
+      <h2>Post an update</h2>
+      <p class="muted">Announcements appear to accepted attendees on the event page.</p>
+      <form method="post" action="{% url 'staff_announcement_create' event.id %}">
+        {% csrf_token %}
+        {% for field in announcement_form %}
+          <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>
+        {% endfor %}
+        <button class="button" type="submit">Post announcement</button>
+      </form>
+      {% for announcement in announcements %}
+        <article class="announcement"><div><h3>{{ announcement.title }}</h3><p>{{ announcement.message|linebreaksbr }}</p><small class="muted">{{ announcement.created_at|date:"M j, Y · g:i A" }}{% if announcement.created_by %} · {{ announcement.created_by.username }}{% endif %}</small></div><form method="post" action="{% url 'staff_announcement_delete' announcement.id %}">{% csrf_token %}<button class="button delete-button" type="submit">Delete</button></form></article>
+      {% empty %}<p class="muted">No announcements yet.</p>{% endfor %}
+    </section>
+  </div>
+
+  <h2>Attendee list & check-in</h2>
+  <div class="staff-table-wrap">
+    <table class="staff-table">
+      <thead><tr><th>Attendee</th><th>Contact / identity</th><th>Registration</th><th>Review</th><th>Attendance</th></tr></thead>
+      <tbody>
+        {% for registration in registrations %}
+          <tr>
+            <td><strong>{{ registration.full_name }}</strong><br>{{ registration.attendee.username }}</td>
+            <td><a href="mailto:{{ registration.attendee.email }}">{{ registration.attendee.email|default:"No email" }}</a><br>{{ registration.phone }}{% if registration.organization %}<br>{{ registration.organization }}{% endif %}{% if registration.attendee_note %}<br><small>{{ registration.attendee_note|linebreaksbr }}</small>{% endif %}</td>
+            <td><span class="status status-{{ registration.status }}">{{ registration.get_status_display }}</span></td>
+            <td>
+              <form class="inline-review" method="post" action="{% url 'review_registration' registration.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'staff_event_detail' event.id %}">
+                <button class="button decision-accept" name="status" value="accepted" type="submit">Accept</button>
+                <button class="button decision-reject" name="status" value="rejected" type="submit">Reject</button>
+              </form>
+            </td>
+            <td>
+              {% if registration.status == "accepted" %}
+                <form method="post" action="{% url 'attendance_update' registration.id %}">
+                  {% csrf_token %}
+                  {% if registration.attended %}<span class="status status-accepted">Checked in</span><button class="button attendance-button" name="attended" value="false" type="submit">Undo</button>
+                  {% else %}<span class="status">Not checked in</span><button class="button attendance-button" name="attended" value="true" type="submit">Check in</button>{% endif %}
+                </form>
+              {% else %}<span class="muted">Accept to enable check-in</span>{% endif %}
+            </td>
+          </tr>
+        {% empty %}<tr><td colspan="5">No attendees have registered yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<style>
+.staff-sections{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:28px 0}
+.staff-sections .panel{width:auto;margin:0;padding:22px}
+.staff-sections h2{font-size:20px}.announcement{display:flex;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid var(--line)}
+.announcement h3{font-size:15px;margin:0 0 5px}.announcement p{font-size:13px}
+.staff-table-wrap{overflow-x:auto;background:white;border:1px solid var(--line)}
+.staff-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
+.staff-table th,.staff-table td{padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.staff-table th{background:#f4f2ec;font-size:10px;text-transform:uppercase}
+.staff-table td small{color:var(--muted)}.status{display:inline-block;padding:5px 8px;border-radius:12px;background:#f2eddd;font-size:10px;font-weight:700}
+.status-accepted{background:#e5efe1;color:#46623f}.status-rejected{background:#f6e4df;color:#8a4537}
+.attendance-button{padding:8px 10px;margin-left:8px;font-size:10px}
+.inline-review{display:flex;gap:5px}.inline-review .button,.delete-button{padding:8px 9px;font-size:10px}
+.decision-accept{background:#526b4c}.decision-reject,.delete-button{background:#955342}
+@media(max-width:700px){.staff-sections{grid-template-columns:1fr}.staff-table{min-width:900px}}
+</style>
+{% endblock %}

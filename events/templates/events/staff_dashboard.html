@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Manage registrations — Gather{% endblock %}
+{% block content %}
+<section class="content">
+  <span class="eyebrow">STAFF AREA</span>
+  <h1>Registrations</h1>
+  <p class="muted">Review attendee requests, update decisions, and manage event information.</p>
+  <p><a class="button" href="{% url 'admin:index' %}">Manage all site data</a></p>
+  <form class="filters" method="get">
+    <select name="event" aria-label="Filter by event">
+      <option value="">All events</option>
+      {% for event in events %}<option value="{{ event.id }}" {% if selected_event == event.id|stringformat:"s" %}selected{% endif %}>{{ event.title }} ({{ event.registration_count }})</option>{% endfor %}
+    </select>
+    <select name="status" aria-label="Filter by status">
+      <option value="">All statuses</option>
+      {% for value, label in statuses %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <button class="button" type="submit">Filter</button>
+  </form>
+  {% if registrations %}
+    <div class="staff-table-wrap">
+      <table class="staff-table">
+        <thead><tr><th>Attendee</th><th>Event</th><th>Registered</th><th>Status</th><th>Decision</th></tr></thead>
+        <tbody>
+          {% for registration in registrations %}
+            <tr>
+              <td><strong>{{ registration.attendee.username }}</strong><br><a href="mailto:{{ registration.attendee.email }}">{{ registration.attendee.email|default:"No email provided" }}</a></td>
+              <td><a href="{% url 'staff_event_detail' registration.event.id %}">{{ registration.event.title }}</a></td>
+              <td>{{ registration.registered_at|date:"M j, Y · g:i A" }}</td>
+              <td><span class="status status-{{ registration.status }}">{{ registration.get_status_display }}</span>{% if registration.reviewed_by %}<br><small>by {{ registration.reviewed_by.username }}</small>{% endif %}</td>
+              <td>
+                <form class="decision-form" method="post" action="{% url 'review_registration' registration.id %}">
+                  {% csrf_token %}
+                  <button class="button decision-accept" type="submit" name="status" value="accepted">Accept</button>
+                  <button class="button decision-reject" type="submit" name="status" value="rejected">Reject</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty"><h3>No registrations match.</h3><p>New requests will appear here.</p></div>
+  {% endif %}
+  <h2>Event workspaces</h2>
+  <div class="grid">
+    {% for event in staff_events %}
+      <article class="card"><div class="card-body"><h3>{{ event.title }}</h3><p>{{ event.starts_at|date:"M j, Y · g:i A" }} · {{ event.registration_count }} registration{{ event.registration_count|pluralize }}</p><a class="button" href="{% url 'staff_event_detail' event.id %}">Manage event →</a></div></article>
+    {% empty %}<p class="muted">No events have been created yet.</p>{% endfor %}
+  </div>
+</section>
+<style>
+.staff-table-wrap{overflow-x:auto;background:#fff;border:1px solid var(--line)}
+.staff-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
+.staff-table th,.staff-table td{padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.staff-table th{background:#f4f2ec;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+.staff-table td a{color:#625e54}.staff-table td small{display:inline-block;margin-top:5px;color:var(--muted)}
+.status{display:inline-block;padding:5px 8px;border-radius:12px;background:#f2eddd;font-size:10px;font-weight:700}
+.status-accepted{background:#e5efe1;color:#46623f}.status-rejected{background:#f6e4df;color:#8a4537}
+.decision-form{display:flex;gap:5px}.decision-form .button{padding:8px 10px;font-size:10px}
+.decision-accept{background:#526b4c}.decision-reject{background:#955342}
+@media(max-width:600px){.staff-table{min-width:720px}}
+</style>
+{% endblock %}

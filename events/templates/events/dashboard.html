@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}My events — Gather{% endblock %}
+{% block content %}<section class="content"><span class="eyebrow">YOUR PLANS</span><h1>Hey, {{ user.username }}.</h1><p><a class="button" href="{% url 'event_create' %}">Create an event +</a></p>
+<h2>Events you’re hosting</h2>{% for event in hosted %}<p><a href="{% url 'event_detail' event.slug %}"><strong>{{ event.title }}</strong></a> · {{ event.starts_at|date:"M j, g:i A" }} · {{ event.location }}</p>{% empty %}<p class="muted">No hosted events yet.</p>{% endfor %}
+<h2>Plans you’re joining</h2>{% for registration in attending %}<p><a href="{% url 'event_detail' registration.event.slug %}"><strong>{{ registration.event.title }}</strong></a> · {{ registration.event.starts_at|date:"M j, g:i A" }} · {{ registration.get_status_display }}{% if registration.status == "accepted" and registration.event.whatsapp_group_url %} · <a href="{{ registration.event.whatsapp_group_url }}" target="_blank" rel="noopener noreferrer">WhatsApp group</a>{% endif %}</p>{% empty %}<p class="muted">No upcoming registrations.</p>{% endfor %}</section>{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} — Gather{% endblock %}
+{% block content %}<section class="content"><p><a href="{% url 'home' %}#events">← Back to events</a></p>
+<div class="detail"><div><div class="art" style="height:230px" aria-hidden="true">✳</div><span class="eyebrow">{{ event.category|upper }} · HOSTED BY {{ event.organizer.username|upper }}</span><h1>{{ event.title }}</h1><div class="muted">{{ event.description|linebreaks }}</div></div>
+<aside class="info"><span class="eyebrow">EVENT DETAILS</span><p><strong>Date</strong><br>{{ event.starts_at|date:"l, F j · g:i A" }}</p><p><strong>Location</strong><br>{{ event.location }}</p><p><strong>Availability</strong><br>{{ event.spots_left }} of {{ event.capacity }} spots left</p>
+{% if registration %}
+  {% if registration.status == "accepted" %}
+    <p>Your registration is accepted ✓</p>
+    {% if event.whatsapp_group_url %}<a class="button" href="{{ event.whatsapp_group_url }}" target="_blank" rel="noopener noreferrer">Join the WhatsApp group</a>{% else %}<p class="muted">The organizer hasn’t added a group invite link yet.</p>{% endif %}
+  {% elif registration.status == "rejected" %}
+    <p>Your registration was not accepted.</p>
+    {% if event.is_upcoming and event.spots_left %}<a class="button" href="{% url 'event_register' event.slug %}">Update details and request again</a>{% endif %}
+  {% else %}
+    <p>Your registration is waiting for admin approval.</p>
+  {% endif %}
+{% elif user.is_authenticated %}
+  {% if event.is_upcoming and event.spots_left %}<a class="button" href="{% url 'event_register' event.slug %}">Request a place</a>{% else %}<p>Registration is closed.</p>{% endif %}
+{% elif event.is_upcoming %}
+  <a class="button" href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to join</a>
+{% endif %}
+{% if announcements %}
+  <hr>
+  <h2>Event announcements</h2>
+  {% for announcement in announcements %}
+    <article><h3>{{ announcement.title }}</h3><p>{{ announcement.message|linebreaksbr }}</p><small class="muted">{{ announcement.created_at|date:"M j, Y · g:i A" }}</small></article>
+  {% endfor %}
+{% endif %}
+</aside></div></section>{% endblock %}

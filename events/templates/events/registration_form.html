@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Register for {{ event.title }} — Gather{% endblock %}
+{% block content %}
+<section class="content">
+  <p><a href="{% url 'event_detail' event.slug %}">← Back to event</a></p>
+  <div class="panel">
+    <span class="eyebrow">ATTENDEE DETAILS</span>
+    <h1>Request a place.</h1>
+    <p class="muted">{{ event.title }} · {{ event.starts_at|date:"M j, Y · g:i A" }}</p>
+    <p class="muted">Your name and contact details will be shared with event staff to review your registration.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <button class="button" type="submit">Send registration request</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

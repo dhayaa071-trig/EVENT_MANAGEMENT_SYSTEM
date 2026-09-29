@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <span class="eyebrow">YOUR CITY, A LITTLE CLOSER</span>
+  <h1>Make room for<br>something <em>good.</em></h1>
+  <p>Find friendly gatherings, discover new things, and make a plan.</p>
+  <a class="button" href="#events">Explore events ↓</a>
+</section>
+<section id="events">
+  <div class="section-head"><div><span class="eyebrow">OUT THERE, WAITING</span><h2>Find your kind of fun.</h2></div></div>
+  <form class="filters" method="get">
+    <input type="search" name="q" placeholder="Search events or places" value="{{ query }}">
+    <select name="category"><option value="">All categories</option>{% for value,label in categories %}<option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <button class="button" type="submit">Search</button>
+  </form>
+  {% if events %}
+  <div class="grid">{% for event in events %}
+    <article class="card"><a href="{% url 'event_detail' event.slug %}"><div class="art" aria-hidden="true">✳</div></a>
+      <div class="card-body"><a href="{% url 'event_detail' event.slug %}"><h3>{{ event.title }}</h3></a>
+        <p>{{ event.category }} · {{ event.starts_at|date:"M j, g:i A" }}</p><p>{{ event.location }}</p>
+        <p>Hosted by {{ event.organizer.username }} · {{ event.spots_left }} spots left</p>
+      </div>
+    </article>
+  {% endfor %}</div>
+  {% else %}<div class="empty"><h3>No events found just yet.</h3><p>Try another search, or host the first one.</p>{% if user.is_authenticated %}<a href="{% url 'event_create' %}">Create an event →</a>{% else %}<a href="{% url 'signup' %}">Sign up to host an event →</a>{% endif %}</div>{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Log in — Gather{% endblock %}
+{% block content %}<section class="content"><div class="panel"><span class="eyebrow">WELCOME BACK</span><h1>Good to see you.</h1>
+<form method="post">{% csrf_token %}{% if form.non_field_errors %}<div class="field">{{ form.non_field_errors }}</div>{% endif %}
+<div class="field"><label for="{{ form.username.id_for_label }}">Username</label>{{ form.username }}</div>
+<div class="field"><label for="{{ form.password.id_for_label }}">Password</label>{{ form.password }}</div>
+<input type="hidden" name="next" value="{{ next }}"><button class="button" type="submit">Log in</button>
+</form><p class="muted">New here? <a href="{% url 'signup' %}">Create an account</a></p></div></section>{% endblock %}
